@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import os
 
 from src.state import ResumeGraphState
-from src.nodes import extract_jd_requirements, retrieve_matching_bullets
+from src.nodes import extract_jd_requirements, retrieve_matching_bullets, draft_resume
 
 # Load environment variables (like GOOGLE_API_KEY) from .env
 load_dotenv()
@@ -14,16 +14,18 @@ def build_graph():
     # Initialize the Graph with our typed state
     workflow = StateGraph(ResumeGraphState)
     
-    # Add Node 1 and Node 2
+    # Add nodes
     workflow.add_node("extract_jd", extract_jd_requirements)
     workflow.add_node("retrieve_bullets", retrieve_matching_bullets)
+    workflow.add_node("draft_resume", draft_resume)
     
     # Set the entry point
     workflow.set_entry_point("extract_jd")
     
     # Chain them together
     workflow.add_edge("extract_jd", "retrieve_bullets")
-    workflow.add_edge("retrieve_bullets", END)
+    workflow.add_edge("retrieve_bullets", "draft_resume")
+    workflow.add_edge("draft_resume", END)
     
     # Compile the graph
     app = workflow.compile()
@@ -79,6 +81,21 @@ if __name__ == "__main__":
         for category, skills in aligned.items():
             print(f"  {category.capitalize()}: {', '.join(skills)}")
         print(f"  Missing Found in JD: {', '.join(missing)}")
+        
+    draft = final_state.get("final_resume_content")
+    if draft:
+        print(f"\n[Draft Node Outputs]")
+        print(f"Experience Sections: {len(draft.get('experience', []))}")
+        for exp in draft.get('experience', []):
+            print(f"  {exp.get('entity_name')}")
+            for b in exp.get('bullets', []):
+                print(f"    - {b}")
+                
+        print(f"\nProject Sections: {len(draft.get('projects', []))}")
+        for proj in draft.get('projects', []):
+            print(f"  {proj.get('entity_name')}")
+            for b in proj.get('bullets', []):
+                print(f"    - {b}")
     
     errors = final_state.get("errors")
     if errors:

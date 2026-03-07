@@ -13,6 +13,15 @@ class JobRequirements(BaseModel):
     years_of_experience: str = Field(description="Expected years of experience, e.g., '3+ years', 'Entry level'.")
     key_responsibilities: List[str] = Field(description="The core tasks the candidate will perform.")
     
+class DraftedSection(BaseModel):
+    entity_name: str = Field(description="The name of the company or project, exactly as provided.")
+    bullets: List[str] = Field(description="The tailored resume bullet points for this entity, rewritten to match JD keywords.")
+
+class DraftResumeOutput(BaseModel):
+    """Structured output for the drafted resume tailored to the JD."""
+    experience: List[DraftedSection] = Field(description="Tailored experience sections.")
+    projects: List[DraftedSection] = Field(description="Tailored project sections.")
+    
 # --- Graph State Definition ---
 
 class ResumeGraphState(TypedDict):

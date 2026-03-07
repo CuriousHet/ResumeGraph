@@ -1,6 +1,65 @@
 import os
 from langchain_google_genai import ChatGoogleGenerativeAI
-from src.state import ResumeGraphState, JobRequirements
+from src.state import ResumeGraphState, JobRequirements, DraftResumeOutput
+from langchain_core.prompts import PromptTemplate
+
+def draft_resume(state: ResumeGraphState) -> ResumeGraphState:
+    """
+    Node 3: Takes the filtered, grouped bullets from Node 2 and rewrites them
+    to perfectly align with the JobRequirements (Node 1) without hallucinating.
+    """
+    print("--- NODE 3: DRAFTING RESUME ---")
+    
+    reqs = state.get("job_requirements")
+    exps = state.get("retrieved_experience_bullets", [])
+    projs = state.get("retrieved_project_bullets", [])
+    aligned = state.get("aligned_skills", {})
+    
+    if not exps and not projs:
+        return {"errors": ["No bullets were retrieved to draft."]}
+        
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-2.5-flash",
+        temperature=0.3 # Slight creativity for phrasing, but still highly grounded
+    )
+    
+    structured_llm = llm.with_structured_output(DraftResumeOutput)
+    
+    prompt = f"""
+    You are an expert resume writer. Your job is to rewrite the provided candidate 
+    experience and project bullets to perfectly align with the target Job Description requirements.
+    
+    CRITICAL RULES:
+    1. DO NOT invent or hallucinate metrics, roles, or responsibilities that are not in the provided bullets.
+    2. Incorporate exact keywords from the Job Requirements IF AND ONLY IF they naturally fit the context of the bullet.
+    3. Make each bullet punchy, action-oriented (starting with a strong verb), and ATS-friendly.
+    4. You MUST process the exact entities listed below.
+    
+    JOB REQUIREMENTS:
+    Primary Skills: {reqs.primary_skills}
+    Secondary Skills: {reqs.secondary_skills}
+    Responsibilities: {reqs.key_responsibilities}
+    
+    RETRIEVED EXPERIENCES TO REWRITE:
+    {exps}
+    
+    RETRIEVED PROJECTS TO REWRITE:
+    {projs}
+    
+    Output exactly the drafted sections for both experience and projects.
+    """
+    
+    try:
+        draft = structured_llm.invoke(prompt)
+        print(f"Drafting Successful. Drafted {len(draft.experience)} experiences and {len(draft.projects)} projects.")
+        
+        # Convert Pydantic object back to a standard dictionary to store in state
+        draft_dict = draft.dict()
+        return {"final_resume_content": draft_dict}
+        
+    except Exception as e:
+        print(f"Error during drafting: {e}")
+        return {"errors": [f"Drafting failed: {str(e)}"]}
 
 def extract_jd_requirements(state: ResumeGraphState) -> ResumeGraphState:
     """
