@@ -5,3 +5,5 @@ langgraph
 langchain
 langchain_core
 jinja2
+langchain-google-genai
+python-dotenv
