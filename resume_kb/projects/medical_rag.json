@@ -1,0 +1,8 @@
+{
+  "name": "Medical RAG",
+  "skills": ["LangChain", "Qdrant", "RAG"],
+  "bullets": [
+    "Built a RAG chatbot with semantic chunking",
+    "Reduced hallucination using vector search"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "education_history": [
+    {
+      "institution": "University Name",
+      "degree": "B.Tech in Computer Science",
+      "duration": "2021 - 2025",
+      "gpa": "8.05/10"
+    }
+  ]
+}

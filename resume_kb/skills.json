@@ -1,0 +1,23 @@
+{
+  "languages": [
+    "Python",
+    "Go",
+    "C++",
+    "SQL"
+  ],
+  "ai_ml": [
+    "PyTorch",
+    "LangChain",
+    "LangGraph",
+    "RAG"
+  ],
+  "cloud": [
+    "AWS",
+    "Docker"
+  ],
+  "databases": [
+    "PostgreSQL",
+    "MongoDB",
+    "Qdrant"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "company": "Topia",
+  "role": "Software Engineer",
+  "duration": "Dec 2025 - Present",
+  "bullets": [
+    {
+      "text": "Developed backend APIs",
+      "skills": ["Python", "FastAPI"],
+      "roles": ["Backend Engineer"]
+    }
+  ]
+}

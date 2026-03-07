@@ -1,0 +1,8 @@
+{
+  "name": "Zillow ETL",
+  "skills": ["Python", "Docker", "PostgreSQL"],
+  "bullets": [
+    "Built an ETL pipeline for real estate data scraping",
+    "Containerized the data ingestion process with Docker"
+  ]
+}

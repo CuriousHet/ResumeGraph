@@ -1,0 +1,26 @@
+{
+  "company": "VMukti Solutions",
+  "role": "AI/ML Intern",
+  "duration": "May 2025 – Nov 2025",
+  "bullets": [
+    {
+      "text": "Deployed computer vision inference services",
+      "skills": [
+        "Computer Vision",
+        "ML"
+      ],
+      "roles": [
+        "ML Engineer"
+      ]
+    },
+    {
+      "text": "Built containerized ML services using Docker",
+      "skills": [
+        "Docker"
+      ],
+      "roles": [
+        "Backend Engineer"
+      ]
+    }
+  ]
+}

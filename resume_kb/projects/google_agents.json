@@ -1,0 +1,8 @@
+{
+  "name": "Google Agents",
+  "skills": ["LangGraph", "Python"],
+  "bullets": [
+    "Developed multi-agent workflows using LangGraph",
+    "Integrated Google APIs for automated agent tasks"
+  ]
+}
