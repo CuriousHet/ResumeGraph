@@ -1,0 +1,7 @@
+qdrant-client
+fastembed
+pydantic
+langgraph
+langchain
+langchain_core
+jinja2
