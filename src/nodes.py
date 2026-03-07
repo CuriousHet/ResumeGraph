@@ -45,3 +45,109 @@ def extract_jd_requirements(state: ResumeGraphState) -> ResumeGraphState:
     except Exception as e:
         print(f"Error during extraction: {e}")
         return {"errors": [f"JD Extraction failed: {str(e)}"]}
+
+def retrieve_matching_bullets(state: ResumeGraphState) -> ResumeGraphState:
+    """
+    Node 2: Takes the extracted job requirements and queries Qdrant for the best
+    matching resume bullet points from the KB.
+    """
+    print("--- NODE 2: HYBRID RETRIEVAL ---")
+    
+    reqs = state.get("job_requirements")
+    if not reqs:
+        return {"errors": ["No job requirements found to query against."]}
+        
+    try:
+        from qdrant_client import QdrantClient
+        client = QdrantClient(url="http://localhost:6333")
+        client.set_model("BAAI/bge-small-en-v1.5")
+        
+        # Build a search query combining all technical skills
+        search_query = " ".join(reqs.primary_skills + reqs.secondary_skills)
+        print(f"Querying Qdrant for: {search_query}")
+        
+        # We want to retrieve a large pool to then filter down (e.g. limit 20)
+        exp_results = client.query(
+            collection_name="resume_knowledge",
+            query_text=search_query,
+            query_filter={"must": [{"key": "category", "match": {"value": "experience"}}]},
+            limit=20
+        )
+        
+        # Query for Projects
+        proj_results = client.query(
+            collection_name="resume_knowledge",
+            query_text=search_query,
+            query_filter={"must": [{"key": "category", "match": {"value": "project"}}]},
+            limit=15
+        )
+        
+        # Group Experience bullets by entity (Company), taking top 3
+        grouped_exps = {}
+        for res in exp_results:
+            entity = res.metadata.get("entity_name", "Unknown")
+            if entity not in grouped_exps:
+                grouped_exps[entity] = []
+            if len(grouped_exps[entity]) < 3: # max 3 per company
+                grouped_exps[entity].append({
+                    "text": res.metadata.get("text", ""),
+                    "score": res.score
+                })
+                
+        # Group Project bullets by entity (Project Name), taking top 2
+        grouped_projs = {}
+        for res in proj_results:
+            entity = res.metadata.get("entity_name", "Unknown")
+            if entity not in grouped_projs:
+                grouped_projs[entity] = []
+            if len(grouped_projs[entity]) < 2: # max 2 per project
+                grouped_projs[entity].append({
+                    "text": res.metadata.get("text", ""),
+                    "score": res.score
+                })
+        
+        # Format the output back to a list of dicts for the LLM to rewrite easily
+        retrieved_exps = [{"entity_name": k, "bullets": v} for k, v in grouped_exps.items()]
+        retrieved_projs = [{"entity_name": k, "bullets": v} for k, v in grouped_projs.items()]
+        
+        print(f"Grouped to {len(retrieved_exps)} companies and {len(retrieved_projs)} projects.")
+        
+        # Process Skills File
+        import json
+        import os
+        
+        skills_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resume_kb", "skills.json")
+        aligned_skills = {}
+        missing_skills = []
+        
+        if os.path.exists(skills_path):
+            with open(skills_path, "r", encoding="utf-8") as f:
+                core_skills = json.load(f)
+                
+            jd_skills_set = set(reqs.primary_skills + reqs.secondary_skills)
+            jd_skills_lower = {s.lower() for s in jd_skills_set}
+            
+            # Reorder categories putting JD priority skills first
+            for category, skills_list in core_skills.items():
+                matched = [s for s in skills_list if s.lower() in jd_skills_lower]
+                unmatched = [s for s in skills_list if s.lower() not in jd_skills_lower]
+                aligned_skills[category] = matched + unmatched
+                
+            # Find missing skills that were in the JD but not our KB skills.json
+            all_kb_skills_lower = {s.lower() for cats in core_skills.values() for s in cats}
+            missing_skills = [s for s in jd_skills_set if s.lower() not in all_kb_skills_lower]
+            
+        else:
+            print("WARNING: skills.json not found.")
+
+        return {
+            "retrieved_experience_bullets": retrieved_exps,
+            "retrieved_project_bullets": retrieved_projs,
+            "aligned_skills": aligned_skills,
+            "missing_skills": missing_skills
+        }
+        
+    except Exception as e:
+        print(f"Error during retrieval: {e}")
+        return {"errors": [f"Retrieval failed: {str(e)}"]}
+

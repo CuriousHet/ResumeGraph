@@ -27,6 +27,8 @@ class ResumeGraphState(TypedDict):
     # Retrieval Output
     retrieved_experience_bullets: List[Dict]
     retrieved_project_bullets: List[Dict]
+    aligned_skills: Dict[str, List[str]]
+    missing_skills: List[str]
     
     # Drafting Output
     final_resume_content: Dict
