@@ -100,3 +100,12 @@ if __name__ == "__main__":
     errors = final_state.get("errors")
     if errors:
         print(f"\nERRORS ENCOUNTERED: {errors}")
+    
+    # --- Step 4: Generate PDF ---
+    if draft and not errors:
+        from src.generate_pdf import generate_resume_pdf
+        project_root = os.path.join(os.path.dirname(__file__), "..")
+        pdf_path = generate_resume_pdf(final_state, project_root)
+        print(f"\n{'='*50}")
+        print(f"Pipeline Complete! Resume saved to: {pdf_path}")
+        print(f"{'='*50}")
