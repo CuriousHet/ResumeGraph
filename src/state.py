@@ -22,6 +22,12 @@ class DraftResumeOutput(BaseModel):
     experience: List[DraftedSection] = Field(description="Tailored experience sections.")
     projects: List[DraftedSection] = Field(description="Tailored project sections.")
     
+class CritiqueOutput(BaseModel):
+    """Structured output for fact-checking the drafted resume."""
+    passed: bool = Field(description="True if the draft is factual and does not hallucinate metrics/roles. False if there are hallucinations.")
+    errors: List[str] = Field(description="Specific hallucinations or additions found. Empty if passed is True.")
+    ats_score: int = Field(description="A score from 0-100 indicating how well the resume matches the JD.")
+
 # --- Graph State Definition ---
 
 class ResumeGraphState(TypedDict):
@@ -44,3 +50,5 @@ class ResumeGraphState(TypedDict):
     
     # Workflow control
     errors: List[str]
+    draft_iterations: int
+    ats_score: int

@@ -68,8 +68,12 @@ def load_static_kb(kb_dir: str) -> dict:
     pub_path = os.path.join(kb_dir, "publications.json")
     with open(pub_path, "r", encoding="utf-8") as f:
         pub_data = json.load(f)
+    
     publications = []
-    for entry in pub_data.get("publications_history", []):
+    # Support both "publications" and "publications_history" keys
+    entries = pub_data.get("publications", pub_data.get("publications_history", []))
+    
+    for entry in entries:
         publications.append({
             "title": escape_latex(entry.get("title", "")),
             "conference": escape_latex(entry.get("conference", "")),
@@ -247,13 +251,18 @@ def compile_pdf(tex_content: str, output_dir: str, filename: str = "final_resume
     
     if os.path.exists(pdf_path):
         print(f"\n✅ PDF generated successfully: {pdf_path}")
+        # Clean up intermediate files
+        for ext in [".tex", ".log", ".aux", ".out"]:
+            p = os.path.join(output_dir, f"{filename}{ext}")
+            if os.path.exists(p):
+                os.remove(p)
     else:
         print(f"\n❌ PDF was not generated. Check {output_dir}/{filename}.log for errors.")
     
     return pdf_path
 
 
-def generate_resume_pdf(final_state: dict, project_root: str = None) -> str:
+def generate_resume_pdf(final_state: dict, project_root: str = None, filename: str = "final_resume") -> str:
     """
     Main entry point. Takes the final LangGraph state and produces a PDF resume.
     
@@ -283,6 +292,6 @@ def generate_resume_pdf(final_state: dict, project_root: str = None) -> str:
     print(f"LaTeX rendered: {len(tex_content)} characters")
     
     # 3. Compile to PDF
-    pdf_path = compile_pdf(tex_content, output_dir)
+    pdf_path = compile_pdf(tex_content, output_dir, filename=filename)
     
     return pdf_path

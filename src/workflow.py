@@ -3,10 +3,14 @@ from dotenv import load_dotenv
 import os
 
 from src.state import ResumeGraphState
-from src.nodes import extract_jd_requirements, retrieve_matching_bullets, draft_resume
+from src.nodes import extract_jd_requirements, retrieve_matching_bullets, draft_resume, critique_and_fact_check
 
 # Load environment variables (like GOOGLE_API_KEY) from .env
 load_dotenv()
+
+def route_after_critique(state: ResumeGraphState) -> str:
+    """Always stop after one iteration as requested."""
+    return "end"
 
 def build_graph():
     """Builds the LangGraph workflow."""
@@ -18,6 +22,7 @@ def build_graph():
     workflow.add_node("extract_jd", extract_jd_requirements)
     workflow.add_node("retrieve_bullets", retrieve_matching_bullets)
     workflow.add_node("draft_resume", draft_resume)
+    workflow.add_node("critique_and_fact_check", critique_and_fact_check)
     
     # Set the entry point
     workflow.set_entry_point("extract_jd")
@@ -25,87 +30,99 @@ def build_graph():
     # Chain them together
     workflow.add_edge("extract_jd", "retrieve_bullets")
     workflow.add_edge("retrieve_bullets", "draft_resume")
-    workflow.add_edge("draft_resume", END)
+    workflow.add_edge("draft_resume", "critique_and_fact_check")
+    
+    workflow.add_conditional_edges(
+        "critique_and_fact_check",
+        route_after_critique,
+        {
+            "draft_resume": "draft_resume",
+            "end": END
+        }
+    )
     
     # Compile the graph
     app = workflow.compile()
     return app
 
-if __name__ == "__main__":
-    
-    print("\n--- Testing LangGraph Node 1: Extraction ---")
-    
-    # Load the sample JD
-    jd_path = os.path.join(os.path.dirname(__file__), "..", "sample_jd.txt")
-    with open(jd_path, "r", encoding="utf-8") as f:
-        sample_jd = f.read()
-        
-    # Initialize state
-    initial_state = {
-        "job_description_text": sample_jd
-    }
-    
-    graph = build_graph()
-    
-    # Run the graph
+def run_single_jd(graph, jd_text: str, jd_name: str, project_root: str):
+    """Runs the full pipeline for a single JD and generates a named PDF."""
+    print(f"\n{'='*60}")
+    print(f"  PROCESSING: {jd_name}")
+    print(f"{'='*60}")
+
+    initial_state = {"job_description_text": jd_text}
     final_state = graph.invoke(initial_state)
-    
-    # Print the output nicely
-    print("\n--- FINAL OUTPUT STATE ---")
-    
+
+    # --- Print summary ---
     reqs = final_state.get("job_requirements")
     if reqs:
-        print(f"\n[Extraction Node Outputs]")
-        print(f"Primary Skills: {reqs.primary_skills}")
-        print(f"Years of Exp: {reqs.years_of_experience}")
-        
-    exps = final_state.get("retrieved_experience_bullets")
-    projs = final_state.get("retrieved_project_bullets")
-    
-    if exps or projs:
-        print(f"\n[Retrieval Node Outputs]")
-        print(f"Experience Companies: {len(exps)}")
-        if len(exps) > 0:
-            print(f"  #1: {exps[0]['entity_name']} with {len(exps[0]['bullets'])} bullets")
-            print(f"    - {exps[0]['bullets'][0]['text']}")
-            
-        print(f"\nProject Entities: {len(projs)}")
-        if len(projs) > 0:
-            print(f"  #1: {projs[0]['entity_name']} with {len(projs[0]['bullets'])} bullets")
-            print(f"    - {projs[0]['bullets'][0]['text']}")
-            
-    aligned = final_state.get("aligned_skills", {})
-    missing = final_state.get("missing_skills", [])
-    if aligned:
-        print(f"\n[Skills Output]")
-        for category, skills in aligned.items():
-            print(f"  {category.capitalize()}: {', '.join(skills)}")
-        print(f"  Missing Found in JD: {', '.join(missing)}")
-        
+        print(f"  Extracted {len(reqs.primary_skills)} primary skills.")
+
     draft = final_state.get("final_resume_content")
+    errors = final_state.get("errors", [])
+    ats_score = final_state.get("ats_score", 0)
+
+    # --- Save Critiques ---
+    critique_dir = os.path.join(project_root, "out", "critiques")
+    os.makedirs(critique_dir, exist_ok=True)
+    critique_path = os.path.join(critique_dir, f"{jd_name}.json")
+    
+    import json
+    with open(critique_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "ats_score": ats_score,
+            "hallucinations": errors,
+            "passed": len(errors) == 0
+        }, f, indent=2)
+    print(f"  Critique saved to: {critique_path}")
+
     if draft:
-        print(f"\n[Draft Node Outputs]")
-        print(f"Experience Sections: {len(draft.get('experience', []))}")
-        for exp in draft.get('experience', []):
-            print(f"  {exp.get('entity_name')}")
-            for b in exp.get('bullets', []):
-                print(f"    - {b}")
-                
-        print(f"\nProject Sections: {len(draft.get('projects', []))}")
-        for proj in draft.get('projects', []):
-            print(f"  {proj.get('entity_name')}")
-            for b in proj.get('bullets', []):
-                print(f"    - {b}")
-    
-    errors = final_state.get("errors")
-    if errors:
-        print(f"\nERRORS ENCOUNTERED: {errors}")
-    
-    # --- Step 4: Generate PDF ---
-    if draft and not errors:
         from src.generate_pdf import generate_resume_pdf
-        project_root = os.path.join(os.path.dirname(__file__), "..")
-        pdf_path = generate_resume_pdf(final_state, project_root)
-        print(f"\n{'='*50}")
-        print(f"Pipeline Complete! Resume saved to: {pdf_path}")
-        print(f"{'='*50}")
+        pdf_path = generate_resume_pdf(final_state, project_root, filename=jd_name)
+        print(f"  ✅ Resume saved to: {pdf_path}")
+        return pdf_path
+    else:
+        print(f"  ❌ Skipped PDF generation (no draft generated).")
+        return None
+
+
+if __name__ == "__main__":
+    import glob
+
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    jd_input_dir = os.path.join(project_root, "jd_inputs")
+
+    # Collect JD files: prefer jd_inputs/ directory, fall back to sample_jd.txt
+    jd_files = []
+    if os.path.isdir(jd_input_dir):
+        jd_files = sorted(glob.glob(os.path.join(jd_input_dir, "*.txt")))
+
+    if not jd_files:
+        # Fallback to the single sample JD
+        fallback = os.path.join(project_root, "sample_jd.txt")
+        if os.path.exists(fallback):
+            jd_files = [fallback]
+        else:
+            print("No JD files found. Place .txt files in jd_inputs/ or provide sample_jd.txt")
+            exit(1)
+
+    print(f"\nFound {len(jd_files)} JD(s) to process.")
+
+    graph = build_graph()
+    results = []
+
+    for jd_path in jd_files:
+        jd_name = os.path.splitext(os.path.basename(jd_path))[0]
+        with open(jd_path, "r", encoding="utf-8") as f:
+            jd_text = f.read()
+        pdf = run_single_jd(graph, jd_text, jd_name, project_root)
+        results.append((jd_name, pdf))
+
+    # --- Final Summary ---
+    print(f"\n{'='*60}")
+    print(f"  BATCH COMPLETE — {len(results)} JD(s) processed")
+    print(f"{'='*60}")
+    for name, pdf in results:
+        status = f"✅ {pdf}" if pdf else "❌ Failed"
+        print(f"  {name}: {status}")

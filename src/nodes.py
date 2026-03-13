@@ -1,7 +1,13 @@
 import os
-from langchain_google_genai import ChatGoogleGenerativeAI
-from src.state import ResumeGraphState, JobRequirements, DraftResumeOutput
+from src.state import ResumeGraphState, JobRequirements, DraftResumeOutput, CritiqueOutput
+from src.key_manager import get_key_manager
 from langchain_core.prompts import PromptTemplate
+
+# --- Model Configuration ---
+# Assign optimal model per node based on task complexity.
+MODEL_EXTRACT = "gemini-2.5-flash"      
+MODEL_DRAFT   = "gemini-2.5-flash"         
+MODEL_CRITIQUE = "gemini-2.5-flash"  
 
 def draft_resume(state: ResumeGraphState) -> ResumeGraphState:
     """
@@ -14,16 +20,16 @@ def draft_resume(state: ResumeGraphState) -> ResumeGraphState:
     exps = state.get("retrieved_experience_bullets", [])
     projs = state.get("retrieved_project_bullets", [])
     aligned = state.get("aligned_skills", {})
+    errors = state.get("errors", [])
     
     if not exps and not projs:
         return {"errors": ["No bullets were retrieved to draft."]}
         
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.3 # Slight creativity for phrasing, but still highly grounded
-    )
+    km = get_key_manager()
     
-    structured_llm = llm.with_structured_output(DraftResumeOutput)
+    error_prompt = ""
+    if errors:
+        error_prompt = f"\nCRITICAL: PREVIOUS DRAFT HAD HALLUCINATIONS. FIX THESE: {errors}\n"
     
     prompt = f"""
     You are an expert resume writer. Your job is to rewrite the provided candidate 
@@ -33,8 +39,10 @@ def draft_resume(state: ResumeGraphState) -> ResumeGraphState:
     1. DO NOT invent or hallucinate metrics, roles, or responsibilities that are not in the provided bullets.
     2. Incorporate exact keywords from the Job Requirements IF AND ONLY IF they naturally fit the context of the bullet.
     3. Make each bullet punchy, action-oriented (starting with a strong verb), and ATS-friendly.
-    4. You MUST process the exact entities listed below.
-    
+    4. LIMIT: Select exactly the top 4 most relevant projects.
+    5. LIMIT: Provide exactly 3 bullet points for each project and experience entry.
+    6. You MUST process the exact entities listed below.
+    {error_prompt}
     JOB REQUIREMENTS:
     Primary Skills: {reqs.primary_skills}
     Secondary Skills: {reqs.secondary_skills}
@@ -50,16 +58,73 @@ def draft_resume(state: ResumeGraphState) -> ResumeGraphState:
     """
     
     try:
-        draft = structured_llm.invoke(prompt)
+        draft = km.invoke_with_retry(
+            model=MODEL_DRAFT,
+            temperature=0.3,
+            prompt=prompt,
+            structured_output_schema=DraftResumeOutput,
+        )
         print(f"Drafting Successful. Drafted {len(draft.experience)} experiences and {len(draft.projects)} projects.")
         
         # Convert Pydantic object back to a standard dictionary to store in state
         draft_dict = draft.dict()
-        return {"final_resume_content": draft_dict}
+        return {"final_resume_content": draft_dict, "draft_iterations": state.get("draft_iterations", 0) + 1}
         
     except Exception as e:
         print(f"Error during drafting: {e}")
         return {"errors": [f"Drafting failed: {str(e)}"]}
+
+def critique_and_fact_check(state: ResumeGraphState) -> ResumeGraphState:
+    """
+    Node 4: Compares the DraftResumeOutput against the original retrieved bullets.
+    Flags any added metrics or responsibilities not present in the original data.
+    """
+    print("--- NODE 4: CRITIQUE AND FACT-CHECK ---")
+    
+    draft = state.get("final_resume_content", {})
+    exps = state.get("retrieved_experience_bullets", [])
+    projs = state.get("retrieved_project_bullets", [])
+    
+    if not draft:
+        return {"errors": ["No drafted resume content found to critique."]}
+        
+    km = get_key_manager()
+    
+    prompt = f"""
+    You are an expert strict Fact-Checker. 
+    Compare the newly drafted resume sections against the original retrieved data.
+    
+    ORIGINAL EXPERIENCE BULLETS: {exps}
+    ORIGINAL PROJECT BULLETS: {projs}
+    
+    DRAFTED RESUME: {draft}
+    
+    RULES:
+    1. If the draft contains ANY numbers, metrics, or technologies that are NOT explicitly mentioned in the ORIGINAL bullets, it is a hallucination.
+    2. If the draft invents a responsibility not implied by the original text, it is a hallucination.
+    3. ATS SCORE: Evaluate how well the drafted resume matches the Job Description. Assign a score from 0 to 100.
+    4. If there are no hallucinations, set 'passed' to True and 'errors' to an empty list.
+    5. If there are hallucinations, set 'passed' to False and list EXACTLY what was hallucinated in 'errors'.
+    """
+    
+    try:
+        critique = km.invoke_with_retry(
+            model=MODEL_CRITIQUE,
+            temperature=0.0,
+            prompt=prompt,
+            structured_output_schema=CritiqueOutput,
+        )
+        
+        if critique.passed:
+            print(f"Fact-Check passed! ATS Score: {critique.ats_score}. No hallucinations detected.")
+            return {"errors": [], "ats_score": critique.ats_score}
+        else:
+            print(f"Fact-Check failed. ATS Score: {critique.ats_score}. Found {len(critique.errors)} hallucinations.")
+            return {"errors": critique.errors, "ats_score": critique.ats_score}
+            
+    except Exception as e:
+        print(f"Error during critique: {e}")
+        return {"errors": [f"Critique failed: {str(e)}"]}
 
 def extract_jd_requirements(state: ResumeGraphState) -> ResumeGraphState:
     """
@@ -72,18 +137,7 @@ def extract_jd_requirements(state: ResumeGraphState) -> ResumeGraphState:
     if not jd_text:
         return {"errors": ["No job description provided."]}
         
-    # Ensure the API key exists
-    if not os.environ.get("GOOGLE_API_KEY") and not os.environ.get("GEMINI_API_KEY"):
-         print("WARNING: GOOGLE_API_KEY not found in environment. The LLM call will likely fail.")
-    
-    # Initialize the Gemini model
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        temperature=0.0  # Zero temperature for deterministic extraction
-    )
-    
-    # Bind the LLM to output our exact Pydantic schema
-    structured_llm = llm.with_structured_output(JobRequirements)
+    km = get_key_manager()
     
     prompt = f"""
     You are an expert technical recruiter analyzing a job description.
@@ -94,8 +148,13 @@ def extract_jd_requirements(state: ResumeGraphState) -> ResumeGraphState:
     """
     
     try:
-        # Call the model
-        extracted_reqs = structured_llm.invoke(prompt)
+        # Call the model with key rotation
+        extracted_reqs = km.invoke_with_retry(
+            model=MODEL_EXTRACT,
+            temperature=0.0,
+            prompt=prompt,
+            structured_output_schema=JobRequirements,
+        )
         print(f"Extraction Successful. Found {len(extracted_reqs.primary_skills)} primary skills.")
         
         # Return the partial state update
