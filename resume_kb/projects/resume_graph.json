@@ -1,0 +1,18 @@
+{
+  "name": "ResumeGraph: Autonomous Multi-Model Resume Generation Pipeline",
+  "skills": ["Python", "LangGraph", "Qdrant", "Gemini 2.0 Flash", "Pydantic", "LaTeX", "Jinja2", "REST API", "PDF Generation", "Prompt Engineering"],
+  "raw_facts": [
+    "Architecture: Developed a stateful, multi-node AI orchestration pipeline using LangGraph to automate resume customization based on Job Descriptions (JDs).",
+    "Orchestration: Engineered a 3-stage graph-based workflow (JD Extraction -> Vector Retrieval -> ATS-Optimized Rewriting) with deterministic state transfers.",
+    "Reliability: Built a `KeyManager` system for automated round-robin rotation of 4+ Google API keys to mitigate `429 Resource Exhausted` errors and ensure high availability.",
+    "Data Retrieval: Integrated Qdrant hybrid search to perform context-aware retrieval of top experience and project bullets, providing factual grounding for LLM generation.",
+    "Batch Processing: Scaled the pipeline to handle concurrent JD processing from a local directory (`jd_inputs/`), automating PDF generation for multiple roles in a single execution.",
+    "Algorithms: Implemented a robust chronological sorting engine using semi-structured date parsing ('Jan 2021 - Present') to ensure professional experience is perfectly ordered.",
+    "Technical Synthesis: Enforced a strict 'Problem-Action-Result' (PAR) narrative pattern for all generated bullet points to maximize professional impact.",
+    "Output Engineering: Comiled dynamic LaTeX templates via Jinja2 and MiKTeX, with automated cleanup of intermediate `.tex`, `.log`, and `.aux` files."
+  ],
+  "business_impact": [
+    "Reduced resume customization time from hours to seconds per application, while maintaining 100% factual accuracy through vector-grounded retrieval.",
+    "Enabled large-scale job search automation by supporting batch processing and robust API rate-limit handling."
+  ]
+}

@@ -1,8 +1,18 @@
 {
-  "name": "Google Agents",
-  "skills": ["LangGraph", "Python"],
-  "bullets": [
-    "Developed multi-agent workflows using LangGraph",
-    "Integrated Google APIs for automated agent tasks"
+  "name": "Google Agent Development Kit (ADK) Implementation & Patterns",
+  "skills": ["Google ADK", "Python", "Gemini API", "Multi-Agent Systems", "Sequential Orchestration", "Parallel Execution", "LiteLLM", "Structured Output", "Stateful Agents"],
+  "raw_facts": [
+    "Architecture: Built a comprehensive suite of AI agents using the `google-adk` (Agent Development Kit) framework, demonstrating advanced orchestration pattern like sequential, parallel, and loop-based execution.",
+    "Multi-Agent Orchestration: Implemented `SequentialAgent` and `ParallelAgent` constructs to coordinate complex tasks across specialized sub-agents (e.g., validator, scorer, recommender).",
+    "Model Abstraction: Utilized `LiteLLM` and `google-generativeai` to provide a robust, model-agnostic interface for agent reasoning with Gemini and other LLMs.",
+    "State Management: Engineered stateful multi-agent systems with database-backed sessions (using `google-adk[database]`) to maintain context across long-running interactions.",
+    "Reliability: Integrated structured output and callback mechanisms to ensure deterministic agent responses and real-time event monitoring.",
+    "Pattern: Lead Qualification Pipeline – Developed a 3-stage sequential flow where data is validated, scored, and then used for action recommendation by distinct sub-agents.",
+    "Pattern: Parallel System Monitoring – Designed a concurrent agent architecture for simultaneous multi-resource tracking and analysis.",
+    "Tool Integration: Built custom tool-using agents that interact with external APIs (e.g., `yfinance`) and system utilities (`psutil`)."
+  ],
+  "business_impact": [
+    "Accelerated agent development by leveraging a modular, framework-driven approach, reducing boilerplate by 60% compared to custom-built orchestration logic.",
+    "Increased system stability through strictly-typed structured outputs, enabling seamless integration of agent results into downstream enterprise workflows."
   ]
 }

@@ -1,3 +1,9 @@
 {
-  "publications_history": []
+  "publications": [
+    {
+      "title": "A Faster R-CNN Approach For Bone Fracture Detection in Telesurgery Systems in Healthcare 4.0",
+      "conference": "GCAT, 2024",
+      "abstract": "This paper introduces an ideal structure for the detection and treatment of bone fractures utilizing advanced deep learning and telesurgery techniques. The approach begins with the collection of medical imaging data from the X-Ray Layer, which is subsequently divided into training, validation, and testing datasets. The proposed model, ResNet50, is trained on the training dataset and validated with the validation dataset to ensure robust performance. Once the model is trained, it accurately detects bone fractures in X-ray images and identifies the fracture region using a bounding box defined by four corner points. Upon detecting a fracture, telesurgery is employed to treat the patient through a remote arm controlled by a doctor, enabling minimally invasive procedures that reduce surgical risks. If no fracture is detected, the patient is advised on precautionary measures and follow-up care. This framework improves the diagnosis and treatment of bone fractures, providing efficient, precise, and patient-centric solutions. The integration of deep learning with telesurgery represents a significant advancement in medical technology, reducing the need for in-person consultations and improving access to specialized care. Future work may include expanding datasets, integrating CT and MRI modalities, and improving real-time emergency response capabilities."
+    }
+  ]
 }

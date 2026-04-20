@@ -1,12 +1,47 @@
 {
-  "company": "Topia",
-  "role": "Software Engineer",
-  "duration": "Dec 2025 - Present",
+  "company": "Topia Life Sciences Pvt Ltd.",
+  "role": "Data Scientist Intern",
+  "duration": "Jan 2025 - May 2025",
   "bullets": [
     {
-      "text": "Developed backend APIs",
-      "skills": ["Python", "FastAPI"],
-      "roles": ["Backend Engineer"]
+      "text": "Developed predictive analytics services using Python and Scikit-learn to analyze large-scale healthcare datasets and generate data-driven insights",
+      "skills": [
+        "Python",
+        "Scikit-learn",
+        "Predictive Analytics",
+        "Data Analysis",
+        "Healthcare Data"
+      ],
+      "roles": [
+        "Data Scientist",
+        "ML Engineer"
+      ]
+    },
+    {
+      "text": "Integrated data processing services with REST APIs to enable reliable data exchange across microservice-based backend systems",
+      "skills": [
+        "REST APIs",
+        "Microservices",
+        "Data Pipelines",
+        "Backend Integration"
+      ],
+      "roles": [
+        "Data Scientist",
+        "Data Engineer"
+      ]
+    },
+    {
+      "text": "Designed and executed automated API testing workflows using Postman to validate data services and ensure reliability of analytics pipelines",
+      "skills": [
+        "Postman",
+        "API Testing",
+        "Automation Testing",
+        "Data Pipeline Validation"
+      ],
+      "roles": [
+        "Data Scientist",
+        "Data Engineer"
+      ]
     }
   ]
 }

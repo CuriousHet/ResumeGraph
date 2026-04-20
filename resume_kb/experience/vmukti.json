@@ -1,24 +1,83 @@
 {
-  "company": "VMukti Solutions",
+  "company": "VMukti Solutions Pvt Ltd.",
   "role": "AI/ML Intern",
   "duration": "May 2025 – Nov 2025",
   "bullets": [
     {
-      "text": "Deployed computer vision inference services",
+      "text": "Developed backend services integrating computer vision models for real-time CCTV analytics applications",
       "skills": [
         "Computer Vision",
-        "ML"
+        "Backend Development",
+        "Python",
+        "CCTV Analytics"
       ],
       "roles": [
+        "Backend Engineer",
         "ML Engineer"
       ]
     },
     {
-      "text": "Built containerized ML services using Docker",
+      "text": "Containerized 5+ backend inference services using Docker, reducing deployment setup time by 40%",
       "skills": [
-        "Docker"
+        "Docker",
+        "Containerization",
+        "Deployment",
+        "Backend Development"
       ],
       "roles": [
+        "Backend Engineer",
+        "DevOps Engineer"
+      ]
+    },
+    {
+      "text": "Designed automated workflows using multi-agent systems to streamline data processing and decision pipelines",
+      "skills": [
+        "Multi-Agent Systems",
+        "Workflow Automation",
+        "Data Pipelines",
+        "AI Systems"
+      ],
+      "roles": [
+        "AI Engineer",
+        "ML Engineer"
+      ]
+    },
+    {
+      "text": "Set up and managed servers for computer vision model deployment, including environment configuration and inference pipeline setup",
+      "skills": [
+        "Server Setup",
+        "Linux",
+        "Model Deployment",
+        "Computer Vision"
+      ],
+      "roles": [
+        "ML Engineer",
+        "DevOps Engineer"
+      ]
+    },
+    {
+      "text": "Configured GPU-based compute environments using Vast.ai to support scalable training and inference workloads for computer vision models",
+      "skills": [
+        "Vast.ai",
+        "GPU Computing",
+        "Model Training",
+        "Cloud Infrastructure"
+      ],
+      "roles": [
+        "ML Engineer",
+        "AI Engineer"
+      ]
+    },
+    {
+      "text": "Collaborated with cross-functional engineering teams using Git and GitHub for code reviews and feature development",
+      "skills": [
+        "Git",
+        "GitHub",
+        "Code Review",
+        "Collaborative Development"
+      ],
+      "roles": [
+        "Software Engineer",
         "Backend Engineer"
       ]
     }

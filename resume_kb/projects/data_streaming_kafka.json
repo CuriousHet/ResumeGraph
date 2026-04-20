@@ -1,0 +1,18 @@
+{
+  "name": "Real-Time YouTube Analytics & Alerting Pipeline",
+  "skills": ["Kafka", "KSQL", "Python", "Avro Serialization", "Confluent Schema Registry", "YouTube Data API v3", "Telegram Bot API", "Event-Driven Architecture"],
+  "raw_facts": [
+    "Architecture: Built a production-grade event-driven pipeline for real-time monitoring of YouTube video performance using Confluent Kafka and KSQLDB.",
+    "Data Ingestion: Engineered a robust Python producer (`youtube_watcher.py`) that leverages the YouTube Data API v3 to poll video statistics (views, likes, comments) with built-in pagination handling.",
+    "Schema Management: Implemented `Avro` serialization with `Confluent Schema Registry` to ensure strict data contract enforcement and evolution across the pipeline.",
+    "Stream Processing: Developed complex KSQL transformations to compute delta changes in video metrics using `latest_by_offset(field, 2)` to compare previous vs. current states.",
+    "Alerting Logic: Designed a stateful KSQL table (`YOUTUBE_CHANGES`) that filters for significant engagement spikes or metric updates.",
+    "Notification System: Integrated a `telegram_outbox` stream that automatically formats and routes alerts to a Telegram Bot via a Kafka Connect sink (implied by `telegram_outbox` schema).",
+    "Filtering Optimization: Implemented a 'chattiness' filter in KSQL to only alert on view count milestones (multiples of 200) while providing immediate updates for likes and comments.",
+    "Async Producer: Utilized `SerializingProducer` from `confluent_kafka` with delivery report callbacks for reliable high-throughput ingestion."
+  ],
+  "business_impact": [
+    "Automated social media engagement monitoring, enabling immediate responses to viral trends or community feedback.",
+    "Reduced API quota consumption by implementing intelligent polling or differential tracking logic."
+  ]
+}

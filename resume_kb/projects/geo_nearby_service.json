@@ -1,0 +1,18 @@
+{
+  "name": "Geo Nearby Service",
+  "skills": ["Go", "Google S2", "Geohash", "Haversine", "REST API", "Spatial Indexing"],
+  "raw_facts": [
+    "Language: Go 1.23 (uses standard 'net/http', 'math', and 'encoding/json' for zero-dependency REST).",
+    "Scale: Implemented an automated simulation to generate and index 100,000 globally distributed users using math/rand.",
+    "Geometry: Developed the Haversine formula from scratch in Go to calculate precise spherical distances between coordinates.",
+    "S2 Indexing: Integrated 'github.com/golang/geo/s2' to implement hierarchical spherical indexing (Level 3 to 13).",
+    "Search Logic: Used s2.RegionCoverer with 128 max cells to tile search areas using spherical caps for precise coverage.",
+    "Optimization: Designed a level-selection algorithm that dynamically switches S2 precision based on search radius to prevent cell explosion.",
+    "Geohash Strategy: Maintained multi-precision indexing (Precision 1–6) using map[uint]map[string][]User for O(1) candidate lookup.",
+    "Benchmarking: Built a live dashboard to measure microsecond-accurate latency across 4 strategies: Naive Scan, Bounding Box, Geohash, and S2."
+  ],
+  "business_impact": [
+    "Reduced proximity search latency from O(N) linear scans to O(1) indexed lookups using spatial bucketing.",
+    "Demonstrated system architecture capable of handling 100,000+ concurrent user positions in-memory."
+  ]
+}

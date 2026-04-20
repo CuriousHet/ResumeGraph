@@ -32,29 +32,85 @@ def draft_resume(state: ResumeGraphState) -> ResumeGraphState:
         error_prompt = f"\nCRITICAL: PREVIOUS DRAFT HAD HALLUCINATIONS. FIX THESE: {errors}\n"
     
     prompt = f"""
-    You are an expert resume writer. Your job is to rewrite the provided candidate 
-    experience and project bullets to perfectly align with the target Job Description requirements.
-    
-    CRITICAL RULES:
-    1. DO NOT invent or hallucinate metrics, roles, or responsibilities that are not in the provided bullets.
-    2. Incorporate exact keywords from the Job Requirements IF AND ONLY IF they naturally fit the context of the bullet.
-    3. Make each bullet punchy, action-oriented (starting with a strong verb), and ATS-friendly.
-    4. LIMIT: Select exactly the top 4 most relevant projects.
-    5. LIMIT: Provide exactly 3 bullet points for each project and experience entry.
-    6. You MUST process the exact entities listed below.
+    You are a senior technical resume writer specializing in software engineering roles.
+    Your output will be pasted DIRECTLY into a resume — zero manual editing should be required.
+
+    ════════════════════════════════════════
+    HARD CONSTRAINTS  (violations = reject output)
+    ════════════════════════════════════════
+    - Exactly 3 bullets per experience entry.
+    - Exactly 3 bullets per project entry.
+    - Exactly the top 4 most relevant projects (ranked by JD alignment).
+    - Every bullet: 30–40 words. Count before finalising.
+    - Every bullet starts with a PAST-TENSE ACTION VERB (Built, Designed, Reduced, Led, Migrated…).
+    - Mention 1–3 technologies per bullet — never front-load a laundry list.
+    - NEVER invent metrics, tools, or responsibilities not present in the source data.
+    - NEVER use filler phrases: "contributed to", "worked on", "helped with", "assisted in".
+    - Process ALL experience entries — do not skip any.
     {error_prompt}
-    JOB REQUIREMENTS:
-    Primary Skills: {reqs.primary_skills}
-    Secondary Skills: {reqs.secondary_skills}
-    Responsibilities: {reqs.key_responsibilities}
-    
-    RETRIEVED EXPERIENCES TO REWRITE:
+
+    ════════════════════════════════════════
+    BULLET STRUCTURE (follow in order for every entity)
+    ════════════════════════════════════════
+    Bullet 1 → WHAT was built / problem solved + primary technology.
+    Bullet 2 → HOW: specific engineering approach, design decision, or key challenge overcome.
+    Bullet 3 → OUTCOME: business value, performance gain, or user impact (use metric only if in source data).
+
+    ════════════════════════════════════════
+    JD KEYWORD INJECTION RULES
+    ════════════════════════════════════════
+    - Use JD keywords only when they naturally describe what was actually done.
+    - Prefer JD vocabulary over synonyms when both are equally accurate.
+    - Primary skills take priority over secondary skills.
+    - Do NOT force-fit a keyword that distorts the original meaning.
+
+    Primary Skills      : {reqs.primary_skills}
+    Secondary Skills    : {reqs.secondary_skills}
+    Key Responsibilities: {reqs.key_responsibilities}
+
+    ════════════════════════════════════════
+    SOURCE DATA
+    ════════════════════════════════════════
+    Legend: 'fact' = raw technical detail | 'impact' = proven result | 'bullet' = pre-written draft
+
+    EXPERIENCES (process every entry):
     {exps}
-    
-    RETRIEVED PROJECTS TO REWRITE:
+
+    PROJECTS (select top 4 by JD relevance, then process each):
     {projs}
-    
-    Output exactly the drafted sections for both experience and projects.
+
+    ════════════════════════════════════════
+    OUTPUT FORMAT  — follow exactly, no extra commentary
+    ════════════════════════════════════════
+    Return ONLY the two sections below. No preamble, no explanation, no markdown headers beyond what is shown.
+
+    EXPERIENCE
+    <Company / Role / Dates as given in source>
+    - <bullet 1>
+    - <bullet 2>
+    - <bullet 3>
+
+    [repeat for every experience entry]
+
+    PROJECTS
+    <Project Name as given in source>
+    - <bullet 1>
+    - <bullet 2>
+    - <bullet 3>
+
+    [repeat for top 4 projects]
+
+    ════════════════════════════════════════
+    SELF-CHECK before returning output
+    ════════════════════════════════════════
+    Silently verify:
+    ✓ Word count 30–40 for every bullet.
+    ✓ No invented data.
+    ✓ All experiences included.
+    ✓ Exactly 4 projects.
+    ✓ No filler phrases.
+    ✓ Every bullet opens with a past-tense verb.
+    Only output the final result after passing all checks.
     """
     
     try:
@@ -94,14 +150,16 @@ def critique_and_fact_check(state: ResumeGraphState) -> ResumeGraphState:
     You are an expert strict Fact-Checker. 
     Compare the newly drafted resume sections against the original retrieved data.
     
-    ORIGINAL EXPERIENCE BULLETS: {exps}
-    ORIGINAL PROJECT BULLETS: {projs}
+    ORIGINAL EXPERIENCE DATA: {exps}
+    ORIGINAL PROJECT DATA: {projs}
+    
+    Note: These are categorized as 'fact' (raw technical details), 'impact' (business results), or 'bullet' (pre-written points).
     
     DRAFTED RESUME: {draft}
     
     RULES:
-    1. If the draft contains ANY numbers, metrics, or technologies that are NOT explicitly mentioned in the ORIGINAL bullets, it is a hallucination.
-    2. If the draft invents a responsibility not implied by the original text, it is a hallucination.
+    1. If the draft contains ANY numbers, metrics, or technologies that are NOT explicitly mentioned in the ORIGINAL data (checking across facts, impacts, and bullets), it is a hallucination.
+    2. If the draft invents a responsibility not implied by the original data, it is a hallucination.
     3. ATS SCORE: Evaluate how well the drafted resume matches the Job Description. Assign a score from 0 to 100.
     4. If there are no hallucinations, set 'passed' to True and 'errors' to an empty list.
     5. If there are hallucinations, set 'passed' to False and list EXACTLY what was hallucinated in 'errors'.
@@ -200,33 +258,35 @@ def retrieve_matching_bullets(state: ResumeGraphState) -> ResumeGraphState:
             limit=15
         )
         
-        # Group Experience bullets by entity (Company), taking top 3
+        # Group Experience bullets by entity (Company), taking top 5
         grouped_exps = {}
         for res in exp_results:
             entity = res.metadata.get("entity_name", "Unknown")
             if entity not in grouped_exps:
                 grouped_exps[entity] = []
-            if len(grouped_exps[entity]) < 3: # max 3 per company
+            if len(grouped_exps[entity]) < 5: # max 5 per company
                 grouped_exps[entity].append({
                     "text": res.metadata.get("text", ""),
+                    "type": res.metadata.get("sub_category", "bullet"),
                     "score": res.score
                 })
                 
-        # Group Project bullets by entity (Project Name), taking top 2
+        # Group Project bullets by entity (Project Name), taking top 5
         grouped_projs = {}
         for res in proj_results:
             entity = res.metadata.get("entity_name", "Unknown")
             if entity not in grouped_projs:
                 grouped_projs[entity] = []
-            if len(grouped_projs[entity]) < 2: # max 2 per project
+            if len(grouped_projs[entity]) < 5: # max 5 per project
                 grouped_projs[entity].append({
                     "text": res.metadata.get("text", ""),
+                    "type": res.metadata.get("sub_category", "bullet"),
                     "score": res.score
                 })
         
         # Format the output back to a list of dicts for the LLM to rewrite easily
-        retrieved_exps = [{"entity_name": k, "bullets": v} for k, v in grouped_exps.items()]
-        retrieved_projs = [{"entity_name": k, "bullets": v} for k, v in grouped_projs.items()]
+        retrieved_exps = [{"entity_name": k, "data": v} for k, v in grouped_exps.items()]
+        retrieved_projs = [{"entity_name": k, "data": v} for k, v in grouped_projs.items()]
         
         print(f"Grouped to {len(retrieved_exps)} companies and {len(retrieved_projs)} projects.")
         

@@ -100,12 +100,47 @@ def load_experience_metadata(kb_dir: str) -> dict:
         with open(fpath, "r", encoding="utf-8") as f:
             entry = json.load(f)
         company = entry.get("company", "")
+        # Store both the full name and a "slugified" or normalized version
         metadata[company.lower()] = {
-            "role": entry.get("role", "Intern"),
+            "role": entry.get("role", "Software Engineer"),
             "duration": entry.get("duration", ""),
             "location": entry.get("location", "")
         }
     return metadata
+
+
+def _parse_end_date(duration_str: str):
+    """
+    Helper to extract a sortable date object from a duration string like "Jan 2021 - Present"
+    or "June 2020 - Aug 2022". Returns a tuple (year, month) for sorting.
+    "Present" is treated as the far future.
+    """
+    import datetime
+    now = datetime.datetime.now()
+    
+    if not duration_str or not isinstance(duration_str, str):
+        return (0, 0)
+        
+    # Split by common dashes
+    parts = re.split(r'[-–—]', duration_str)
+    end_part = parts[-1].strip().lower()
+    
+    if "present" in end_part:
+        return (9999, 12)  # Future
+        
+    # Try to find Year (4 digits)
+    year_match = re.search(r'\d{4}', end_part)
+    year = int(year_match.group()) if year_match else 0
+    
+    # Try to find Month
+    months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"]
+    month = 0
+    for i, m in enumerate(months):
+        if m in end_part:
+            month = i + 1
+            break
+            
+    return (year, month)
 
 
 def load_project_metadata(kb_dir: str) -> dict:
@@ -147,14 +182,35 @@ def build_template_context(final_state: dict, kb_dir: str) -> dict:
     experience_sections = []
     for exp in draft.get("experience", []):
         entity = exp.get("entity_name", "Unknown")
-        meta = exp_meta.get(entity.lower(), {})
+        
+        # Fuzzy lookup: try exact match first, then substring match
+        meta = exp_meta.get(entity.lower())
+        if not meta:
+            # Try to find a company in meta that is contained within entity or vice versa
+            for company_name, m in exp_meta.items():
+                if company_name in entity.lower() or entity.lower() in company_name:
+                    meta = m
+                    break
+        
+        if not meta:
+            meta = {}
+            
         experience_sections.append({
             "entity_name": escape_latex(entity),
-            "role": escape_latex(meta.get("role", "Intern")),
+            "role": escape_latex(meta.get("role", "Software Engineer")),
             "duration": escape_latex(meta.get("duration", "")),
             "location": escape_latex(meta.get("location", "")),
-            "bullets": [escape_latex(b) for b in exp.get("bullets", [])]
+            "bullets": [escape_latex(b) for b in exp.get("bullets", [])],
+            "_end_date": _parse_end_date(meta.get("duration", ""))
         })
+    
+    # Sort experience by end date descending
+    experience_sections.sort(key=lambda x: x["_end_date"], reverse=True)
+    
+    # Clean up the helper key before passing to template
+    for exp in experience_sections:
+        del exp["_end_date"]
+        
     context["experience"] = experience_sections
     
     # Process drafted projects
@@ -252,7 +308,7 @@ def compile_pdf(tex_content: str, output_dir: str, filename: str = "final_resume
     if os.path.exists(pdf_path):
         print(f"\n✅ PDF generated successfully: {pdf_path}")
         # Clean up intermediate files
-        for ext in [".tex", ".log", ".aux", ".out"]:
+        for ext in [".log", ".aux", ".out"]:
             p = os.path.join(output_dir, f"{filename}{ext}")
             if os.path.exists(p):
                 os.remove(p)

@@ -1,0 +1,17 @@
+{
+  "name": "D-CAS – Distributed Content-Addressable Storage",
+  "skills": ["Go", "P2P Networking", "TCP", "SHA-256", "Content-Addressable Storage", "Mutex Concurrency"],
+  "raw_facts": [
+    "Language: Go 1.23 (uses standard 'net', 'os', and 'sync' for core networking and storage).",
+    "Architecture: Built a custom P2P transport layer over TCP with a thread-safe peer management system using sync.RWMutex.",
+    "Content-Addressing: Implemented file storage indexed by SHA-256 checksums, ensuring data deduplication and integrity (Content-Addressable Storage).",
+    "Networking: Developed a decoupled 'TCPTransport' with a callback-based 'HandshakeFunc' for extensible peer validation.",
+    "Concurrency: Utilized a non-blocking accept loop with dedicated goroutines for handling individual peer connections (P2P).",
+    "CLI & Tooling: Integrated a command-line interface with a Makefile-based workflow for orchestrated node deployment and testing.",
+    "Testing: Leveraged 'github.com/stretchr/testify' for unit testing storage handlers and network protocol logic."
+  ],
+  "business_impact": [
+    "Eliminated data redundancy across distributed clusters through hash-based content addressing.",
+    "Established a horizontally scalable storage foundation where nodes can be added dynamically without downtime."
+  ]
+}

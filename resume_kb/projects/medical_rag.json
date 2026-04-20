@@ -1,8 +1,18 @@
 {
-  "name": "Medical RAG",
-  "skills": ["LangChain", "Qdrant", "RAG"],
-  "bullets": [
-    "Built a RAG chatbot with semantic chunking",
-    "Reduced hallucination using vector search"
+  "name": "Medical-RAG – Private Healthcare AI",
+  "skills": ["Python", "FastAPI", "Qdrant", "LangChain", "BioMistral-7B", "PubMedBERT", "Vector Embeddings", "PDF Ingestion"],
+  "raw_facts": [
+    "Architecture: Local-first Retrieval-Augmented Generation (RAG) system designed for HIPAA-compliant, private medical data processing.",
+    "LLM Architecture: Utilizes `BioMistral-7B` (Quantized GGUF) via `ctransformers`, optimized for medical domain reasoning on consumer-grade CPUs with AVX2 support.",
+    "Embedding Strategy: Implemented `NeuML/pubmedbert-base-embeddings`, a specialized model trained on PubMed abstracts, to ensure high semantic fidelity for clinical terminology.",
+    "Vector Storage: Integrated `Qdrant` as the primary vector database, supporting real-time similarity search and scalable collection management.",
+    "Ingestion Pipeline: Built a recursive PDF processing engine using `langchain.document_loaders.PyPDFLoader` with `RecursiveCharacterTextSplitter` (1000/100 chunking strategy).",
+    "API Layer: Developed a non-blocking FastAPI backend with `Jinja2` templating for low-latency query-response cycles.",
+    "Data Privacy: The system is designed to run entirely air-gapped, leveraging local LLMs and vector stores to ensure 100% data residency.",
+    "Inference Optimization: Configured `ctransformers` with dynamic thread allocation (half of available OS cores) to balance throughput and system stability."
+  ],
+  "business_impact": [
+    "Enabled secure clinical decision support by providing citation-backed answers from private oncology handbooks and research papers.",
+    "Reduced infrastructure costs by $500+/mo compared to enterprise LLM APIs by shifting inference to local hardware."
   ]
 }

@@ -1,0 +1,18 @@
+{
+  "name": "GoDrop – S3-Backed File Sharing",
+  "skills": ["Go", "Cloudflare R2", "AWS SDK for Go", "SHA-256 Hashing", "MIME Type Detection", "REST API", "HTML Templates"],
+  "raw_facts": [
+    "Language: Go 1.23 with `net/http` standard library for the web server.",
+    "Storage Architecture: Dual-layered storage interface supporting both local filesystem (`FileStorage`) and S3-compatible object storage (`S3Storage`).",
+    "Cloudflare R2 Optimization: Configured `aws-sdk-go` with `S3ForcePathStyle: true` and `Region: 'auto'` for seamless R2 compatibility.",
+    "Data Integrity: Implemented mandatory SHA-256 content hashing for every upload to enable unique file identification and de-duplication logic.",
+    "MIME Management: Developed a custom mapping system to provide precise Content-Type headers for 15+ file formats (PDF, JPEG, PNG, ZIP, etc.) in S3 `PutObject` calls.",
+    "Serverless Indexing: Engineered a human-readable 'Code Word' system that utilizes `ListObjectsV2` for fuzzy prefix matching on S3 keys, effectively using the object storage bucket as a zero-latency index without a separate database.",
+    "Performance: Implemented memory-buffered uploads using `io.ReadAll` and `bytes.NewReader` to satisfy `io.ReadSeeker` requirements for S3 SDK compliance.",
+    "Deployment: Built-in support for `.env` configuration and environment variable injection for 12-factor app compliance."
+  ],
+  "business_impact": [
+    "Eliminated user friction by providing a 'no-login' instant file sharing workflow, reducing 'Time-to-Share' to the duration of a single POST request.",
+    "Reduced storage costs by leveraging Cloudflare R2's zero egress fees while maintaining enterprise-grade durability."
+  ]
+}

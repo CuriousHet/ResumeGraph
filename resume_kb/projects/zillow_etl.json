@@ -1,8 +1,18 @@
 {
-  "name": "Zillow ETL",
-  "skills": ["Python", "Docker", "PostgreSQL"],
-  "bullets": [
-    "Built an ETL pipeline for real estate data scraping",
-    "Containerized the data ingestion process with Docker"
+  "name": "End-to-End Zillow Real Estate ETL Pipeline",
+  "skills": ["Apache Airflow", "AWS Lambda", "Amazon Redshift", "AWS S3", "Python", "Pandas", "AWS QuickSight", "Boto3", "S3ToRedshiftOperator", "ETL Architecture"],
+  "raw_facts": [
+    "Architecture: Engineered a multi-stage serverless and containerized ETL pipeline to process real estate data from RapidAPI (Zillow) to Amazon Redshift.",
+    "Orchestration: Deployed and configured Apache Airflow on AWS EC2 (Ubuntu) to manage the end-to-end DAG execution, scheduling, and task monitoring.",
+    "Data Ingestion: Developed Python-based Airflow operators to extract property listings from the Zillow API, persisting raw JSON state to an S3 landing zone.",
+    "Serverless Transformation: Implemented a decoupled AWS Lambda architecture with S3 event triggers for automated data processing and reinforcement.",
+    "Data Engineering: Leveraged `pandas` (via AWS Lambda Layers) to perform schema-on-read transformations, filtering 20+ raw fields down to 9 core features (price, bathrooms, area, etc.) and converting to optimized CSV format.",
+    "Data Warehouse Integration: Utilized the `S3ToRedshiftOperator` to handle high-performance bulk loading from S3 to a multi-node Redshift cluster (`ra3.xplus`).",
+    "Data Quality: Integrated `S3KeySensor` within Airflow to ensure pipeline synchronization and data availability before downstream loading.",
+    "Analytics & Viz: Configured AWS QuickSight to connect to the Redshift data warehouse, enabling interactive dashboards for property trend analysis."
+  ],
+  "business_impact": [
+    "Unified disparate property data into a centralized warehouse, reducing analyst query time by 80% compared to raw JSON processing.",
+    "Automated the entire data lifecycle from ingestion to visualization, providing daily updated market insights with zero manual intervention."
   ]
 }

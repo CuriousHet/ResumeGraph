@@ -1,10 +1,11 @@
 {
   "name": "Het Patel",
-  "phone": "+91XXXXXXXXX",
+  "phone": "+91 9723943033",
   "email": "hetpatel.info@gmail.com",
   "links": {
-    "linkedin": "",
-    "github": "",
-    "portfolio": ""
+    "linkedin": "https://www.linkedin.com/in/hetpatel10/",
+    "github": "https://github.com/CuriousHet",
+    "portfolio": "https://hetportfolio.vercel.app/",
+    "kaggle": "https://www.kaggle.com/hetpatel10"
   }
 }

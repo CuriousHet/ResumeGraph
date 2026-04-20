@@ -3,21 +3,58 @@
     "Python",
     "Go",
     "C++",
-    "SQL"
+    "SQL",
+    "JavaScript"
   ],
   "ai_ml": [
-    "PyTorch",
     "LangChain",
     "LangGraph",
-    "RAG"
+    "RAG",
+    "Generative AI",
+    "Machine Learning",
+    "Deep Learning",
+    "Computer Vision",
+    "NLP",
+    "MCP",
+    "Gemini API",
+    "Google ADK",
+    "Multi-Agent Systems",
+    "HuggingFace",
+    "CTransformers",
+    "Pydantic",
+    "PyTorch"
   ],
   "cloud": [
     "AWS",
-    "Docker"
+    "AWS S3",
+    "AWS Glue",
+    "AWS Athena",
+    "Amazon Redshift",
+    "AWS QuickSight",
+    "Cloudflare R2",
+    "Docker",
+    "Vast.ai"
   ],
   "databases": [
     "PostgreSQL",
     "MongoDB",
-    "Qdrant"
+    "Qdrant",
+    "Redis"
+  ],
+  "backend": [
+    "FastAPI",
+    "gRPC",
+    "GraphQL",
+    "REST API",
+    "Protocol Buffers"
+  ],
+  "data_engineering": [
+    "Apache Spark",
+    "PySpark",
+    "Apache Kafka",
+    "Confluent Cloud",
+    "ksqlDB",
+    "Airflow",
+    "ETL"
   ]
 }

@@ -1,0 +1,18 @@
+{
+  "name": "AWS Unstructured Data Processing Pipeline",
+  "skills": ["PySpark", "AWS S3", "Apache Spark Structured Streaming", "Cloud Data Architectures", "UDF (User Defined Functions)", "Data Cleansing", "S3A Connector", "Parquet Storage"],
+  "raw_facts": [
+    "Architecture: Built a high-throughput, real-time structured streaming pipeline using `PySpark` to process unstructured job bulletin data from AWS S3.",
+    "Storage Layer: Configured `S3A` protocol with `SimpleAWSCredentialsProvider` for seamless integration between Spark and AWS S3 object storage.",
+    "Stream Processing: Implemented `SparkSession` with custom JAR packages for `hadoop-aws:3.3.1` and `aws-java-sdk:1.11.469` to handle S3 metadata and data operations.",
+    "Data Engineering: Developed a suite of complex Regex-based UDFs in `udf_utils.py` to extract positioning, class codes, salary ranges, and education requirements from multi-line text files.",
+    "Optimization: Configured executor memory (4g) and processing triggers (5 seconds) to ensure low-latency batch writes to parquet format.",
+    "Fault Tolerance: Integrated S3-based checkpointing (`s3a://.../checkpoints/`) to ensure exactly-once processing semantics and recovery from stream failures.",
+    "Data Integration: Implemented a `union_df` strategy to consolidate processed text streams with structured JSON inputs into a unified columnar schema.",
+    "Schema Enforcement: Defined rigorous `StructType` schemas to ensure data integrity across various input formats (PDF, Text, JSON)."
+  ],
+  "business_impact": [
+    "Automated the extraction of critical job metadata from 10,000+ unstructured documents, reducing manual data entry by 95%.",
+    "Enabled real-time analytics on recruiting trends by reducing the data-to-insight window from days to seconds."
+  ]
+}

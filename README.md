@@ -5,7 +5,7 @@ ResumeGraph autonomously generates JD-tailored, ATS-optimized resumes using LLMs
 ## Pipeline
 
 ```
-JD Text → [Extract Requirements] → [Retrieve Bullets] → [Draft Resume] → [Generate PDF]
+JD Text → [Extract Requirements] → [Retrieve Bullets] → [Draft Resume] ⇄ [Critique] → [Generate PDF]
 ```
 
 | Node | What it does | Tech |
@@ -13,6 +13,7 @@ JD Text → [Extract Requirements] → [Retrieve Bullets] → [Draft Resume] →
 | **1 — Extract** | Parses JD into structured skills, experience, responsibilities | Gemini 2.5 Flash + Pydantic |
 | **2 — Retrieve** | Fetches top-3 bullets/company, top-2/project from vector DB; reorders skills | Qdrant Hybrid Search |
 | **3 — Draft** | Rewrites bullets for ATS alignment without hallucination | Gemini 2.5 Flash + Structured Output |
+| **4 — Critique**| Verifies draft against retrieved facts, rejects hallucinations | Gemini 2.5 Flash + Routing |
 | **PDF Gen** | Merges drafted content with static KB, compiles LaTeX | Jinja2 + pdflatex (MiKTeX) |
 
 ## Quick Start
@@ -80,4 +81,4 @@ ResumeGraph/
 - [x] Vector Database Setup & Data Ingestion (Qdrant)
 - [x] LangGraph Workflow — Nodes 1, 2, 3
 - [x] LaTeX PDF Generation via Jinja2 + pdflatex
-- [ ] Critique & Fact-Check Node (hallucination prevention loop)
+- [x] Critique & Fact-Check Node (hallucination prevention loop)

@@ -1,0 +1,18 @@
+{
+  "name": "Notify – High-Performance Notification Microservice",
+  "skills": ["Go", "gRPC", "GraphQL", "Protocol Buffers", "Prometheus Metrics", "Goroutines", "Concurrency Patterns", "Docker", "PromQL"],
+  "raw_facts": [
+    "Architecture: Developed a high-concurrency notification engine in Go, utilizing a robust worker-dispatcher pattern for asynchronous processing.",
+    "Concurrency Management: Implemented custom `Queue` and `Dispatcher` components leveraging Go channels and goroutines to handle bursty workloads with 5+ concurrent workers.",
+    "Dual-Interface Layer: Engineered a hybrid API surface featuring a high-performance gRPC server for internal service-to-service communication and a GraphQL (graph-gophers) interface for client-side querying.",
+    "Observability: Integrated `Prometheus` with custom metrics (via `InitMetrics`) and a `/metrics` endpoint to monitor queue depth, processing latency, and throughput in real-time.",
+    "Data Definition: Utilized `Protocol Buffers` (proto3) to define strictly-typed notification payloads, ensuring cross-language compatibility and efficient serialization.",
+    "API Gateway: Implemented `gorilla/mux` to route GraphQL queries and Prometheus scrapes, providing a unified HTTP management layer.",
+    "Containerization: Built a production-ready `Dockerfile` and `docker-compose.yml` for multi-stage Go builds and orchestrated deployment with monitoring sidecars.",
+    "Reliability: Designed a non-blocking ingestion flow where gRPC calls immediately hand off state to the internal queue, minimizing upstream latency."
+  ],
+  "business_impact": [
+    "Improved system reliability by decoupling notification triggers from user-facing transactions, preventing downstream failures from impacting 99.9% of user requests.",
+    "Enhanced developer productivity by providing a flexible GraphQL API for tracking notification delivery status across multiple channels."
+  ]
+}

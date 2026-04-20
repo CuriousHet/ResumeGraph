@@ -34,23 +34,36 @@ def extract_bullets_from_json(filepath, category, entity_name_key):
     for item in data:
         entity_name = item.get(entity_name_key, "Unknown")
         top_level_skills = item.get("skills", [])
-        bullets = item.get("bullets", []) 
         
-        for bullet_obj in bullets:
-            # Depending on if 'bullet_obj' is a string or dict:
-            if isinstance(bullet_obj, dict):
-                text = bullet_obj.get("text", "")
-                skills = bullet_obj.get("skills", top_level_skills)
-            else:
-                text = str(bullet_obj)
-                skills = top_level_skills
-                
-            yield {
-                "text": text,
-                "category": category,
-                "entity_name": entity_name,
-                "skills": skills
-            }
+        # Collect all sources of text: bullets, raw_facts, business_impact
+        bullets = item.get("bullets", [])
+        raw_facts = item.get("raw_facts", [])
+        impacts = item.get("business_impact", [])
+        
+        # Combine all strings into a list for processing
+        all_text_sources = [
+            (bullets, "bullet"),
+            (raw_facts, "fact"),
+            (impacts, "impact")
+        ]
+        
+        for source_list, sub_category in all_text_sources:
+            for bullet_obj in source_list:
+                # Depending on if 'bullet_obj' is a string or dict:
+                if isinstance(bullet_obj, dict):
+                    text = bullet_obj.get("text", "")
+                    skills = bullet_obj.get("skills", top_level_skills)
+                else:
+                    text = str(bullet_obj)
+                    skills = top_level_skills
+                    
+                yield {
+                    "text": text,
+                    "category": category,
+                    "sub_category": sub_category,
+                    "entity_name": entity_name,
+                    "skills": skills
+                }
 
 def parse_all_documents(kb_path):
     """
